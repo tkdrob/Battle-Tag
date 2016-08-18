@@ -1,0 +1,79 @@
+You will need a hex edited such as HxD: http://mh-nexus.de/en/downloads.php?product=HxD
+
+Keep in mind that you need to be counting in hexidecimal and not decimal. I recommend that you use the calc application for Windows. Hit alt + 3 for programmer view. 
+
+Immediately after DANI, you will see the fifth byte. This is the number of animations to be stored on the T-Blaster. Bytes 10 and 11 determine the end of the animations. They must match the location of the value 22 on the second to last line. 
+
+For each of the animations, the first two bytes after the animation name determine the start of the code for that animation. Whenever the 1st byte passes FF, that is when you must move the 2nd byte up by one. The 3rd and 4th bytes is the distance between the start of the current animation and the next one. The hex string towards the end "22 04 19 86" must be in all Bank files. 
+
+Now for the last part. Once you are done, delete all hex values after that 86. That last line you just deleted is an MD5 checksum for everything about it. Run a checksum in HxD by going to Analysis - Checksums. Insert the md5 in the last line and save. 
+
+
+
+
+
+
+
+
+Everything stated above generally applies to the sound banks as well. 
+
+Below are the animation codes and descriptions (Work in Progress):
+
+ARAM 0A 01 12 02 12 07 03 12 08 07 04 12 09 08 07 05 12 0A 09 08 07 06 12 0B 0A 09 08 07 05 0B 0A 09 08 07 06 12 0B 0A 09 08 07 05 0B 0A 09 08 07 06 12 0B 0A 09 08 07
+AMED 0A 01 11 02 11 07 03 11 08 07 04 11 09 08 07 05 11 0A 09 08 07 06 11 0B 0A 09 08 07 05 0B 0A 09 08 07 06 11 0B 0A 09 08 07 05 0B 0A 09 08 07 06 11 0B 0A 09 08 07
+AGB1 0F 03 13 02 01 01 13
+AGB2 0F 06 13 04 03 01 00 06 01 13
+AGB3 0F 06 13 02 03 01 00 06 01 13
+AGB4 0F 05 13 02 05 01 06 01 13
+AGB5 0F 06 13 02 03 05 00 06 01 13
+AGB6 0F 06 13 04 03 05 02 00 06 01 13
+AGBF 0F 01 13 00 05 04 06 01 13
+AGBH 0F 06 13 02 01 05 04 06 01 13
+AVUC 0F 03 02 04 06 03 05 01 06
+ABOO 0A 03 0B 09 07 04 0D 0C 0A 08 04 0D 0C 05 04 03 05 04 06 03 02 01 06 03 12 02 01 01 12 00 01 12 00 01 12 00 01 12
+AGOV 19 02 0C 02 02 0D 01
+AGAV 19 01 0C 02 02 0D 02
+AOUT 28 04 02 04 03 06 00 04 02 04 03 06 00
+AEND 0F 02 05 06 02 05 00 02 01 00 02 01 06 02 04 06 02 04 03 02 02 03 02 02 06
+ADON 0F 02 05 06 02 05 00 02 01 00 02 01 06 02 04 06 02 04 03 02 02 03 02 02 06
+ASWI 0F 02 00 03 02 01 04 02 05 02 02
+ASWF 0F 02 00 06 02 01 04 02 06 03 02 04 02 02 06 03 02 01 04 02 02 06
+ASWL 0F 03 06 03 03 02 04 03
+AUBI 28 06 13 02 05 04 03 01 01 13
+ASHT 05 02 12 07 03 12 08 07 04 12 09 08 07 05 12 0A 09 08 07 06 12 0B 0A 09 08 07
+AHUR 05 02 0B 09 07 02 0A 08 02 07 09 02 08 02 07
+
+
+
+ARAM RELOAD
+AMED HEAL
+AGB1 Goal 1
+AGB2 Goal 2
+AGB3 Goal 3
+AGB4 Goal 4
+AGB5 Goal 5
+AGB6 Goal 6
+AVUC LOWERCASE U and N alternating
+ABOO BOOT
+AGOV LIKE VU
+AGAV Zig Zag AGOV
+AOUT OUT DIGIT
+AEND Gun becomes unresponsive. 
+ADON same as AEND but does not kill gun.
+ASWI swirl
+ASWF swirl figure-eight
+ASWL swirl lowercase
+AUBI Goal Ubiconnect
+ASHT FLASHING HUD GAUGE
+AHUR flickering hud gauge
+
+0F: digit
+01 13: rapid blink?
+02: alternate fast?
+03: alternate fast?
+04: alternate slow?
+05: alternate fast?
+06: alternate fast?
+12: gauge
+19: ?
+28: alternate slow?
