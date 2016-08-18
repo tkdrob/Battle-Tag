@@ -1,0 +1,144 @@
+
+
+VAR nb_hit		SEND
+VAR nb_ammo		SEND	
+VAR nb_clip		SEND
+VAR scan_ok
+VAR lastrfid_type
+VAR max_ammo	CONFIG
+VAR max_clip		CONFIG
+VAR local
+
+
+FUNCTION hud
+HUD_ICON_ON	BULLET
+IF	nb_ammo		SUP	0
+	HUD_DIGIT	nb_ammo
+ELSE
+	HUD_DIGIT_BLINK	nb_ammo
+END_IF
+HUD_JAUGE	nb_clip
+
+END_FUNCTION
+
+FUNCTION reload
+SET	nb_clip	max_clip
+DEC 	nb_clip
+SET	nb_ammo		max_ammo
+GOTO	game
+
+END_FUNCTION
+
+FUNCTION get_hit
+INC	nb_hit
+MOTOR		30
+SND	HURT
+LED_ON		30	1
+
+END_FUNCTION
+
+STATE init 
+
+FIRST_STATE
+
+EVENT ENTER_STATE
+TIMER		100
+SET_HARNESS		1
+SET	nb_hit		0
+SND	START
+SET	local 		0
+reload
+
+END_EVENT
+
+END_STATE
+
+STATE game 
+
+EVENT BUTTON_2_JUST_PRESSED
+IF	nb_ammo		SUP	0
+	IF	max_ammo	DIFF	20	
+		DEC		nb_ammo
+	ELSE
+		ANIM		ASHT
+	END_IF
+	SND_PRIO	SHOOT
+	FLASH_ORANGE	1
+	IR
+	IF	nb_ammo	COMP	3
+		IF nb_clip COMP 0
+			SND_PRIO	SD01
+		END_IF
+	END_IF
+ELSE
+	IF nb_clip COMP 0
+		INC local
+		IF	local	SUP	5
+			SND_PRIO	ASSIST_SCANAMMO
+			SET local 0
+		END_IF
+	END_IF
+END_IF
+hud
+SND		EMPTY
+
+END_EVENT
+
+EVENT BUTTON_3_JUST_PRESSED
+RFID_SCAN	scan_ok
+IF	scan_ok		COMP	1
+	RFID_TYPE_MAJOR	lastrfid_type
+	IF lastrfid_type COMP RFID_AMMO_PACK
+		FLASH_GREEN	1
+		GOTO	reload
+	END_IF
+END_IF
+SND	SCAN_BAD
+
+END_EVENT
+
+EVENT HIT
+get_hit
+
+END_EVENT
+
+EVENT ENTER_STATE
+hud
+
+END_EVENT
+
+EVENT TIMER
+IF	nb_ammo		COMP	0
+	IF nb_clip SUP 0
+		DEC 	nb_clip
+		SND	RELOAD
+		SET	nb_ammo		max_ammo
+		hud
+	END_IF
+END_IF
+
+END_EVENT
+
+END_STATE
+
+STATE reload 
+
+EVENT ENTER_STATE
+SND	RELOAD_CLIP
+FLASH_GREEN	1
+ANIM ARAM
+
+END_EVENT
+
+EVENT ANIM_FINISHED
+reload
+SND_PRIO	OK
+
+END_EVENT
+
+EVENT HIT
+get_hit
+
+END_EVENT
+
+END_STATE

@@ -1,0 +1,18 @@
+
+local nfo = {
+
+    class = "UATheWolf",
+
+    ["name"] = "The Martian Wolf",
+    ["description"] = "Beware the Martian Wolf! He's going to try and steal your body...",
+    ["pictogram"] = "TheWolf.tga",
+    ["category"] = 2,
+
+
+    ["difficulty"] = 45,
+    ["flags"] = { "3-32 players", },
+    ["materials"] = { 0x03000050, 0x03000051, 0x03000052, 0x03000053, 0x03000054, 0x03000055,},
+
+}
+
+return nfo

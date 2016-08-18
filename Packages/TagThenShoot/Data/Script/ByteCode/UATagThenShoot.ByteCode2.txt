@@ -1,0 +1,135 @@
+
+
+VAR nb_stage		CONFIG
+VAR nb_hit		RECEIVE
+VAR hit
+VAR local
+VAR timer
+VAR scan_rfid
+VAR stage		SEND
+VAR tagging		SEND
+
+
+FUNCTION tag
+IF stage COMP 0
+	ANIM_LOOP	AGB1
+ELSE
+	IF stage COMP 1
+		ANIM_LOOP	AGB2
+	ELSE
+		IF stage COMP 2
+			ANIM_LOOP	AGB3
+		ELSE
+			ANIM_LOOP	AGB4
+		END_IF
+	END_IF
+END_IF
+SET	timer 	1
+SET	tagging	1
+
+END_FUNCTION
+
+FUNCTION shoot
+ANIM_LOOP	AUBI
+SET	timer 	1
+SET	tagging	0
+
+END_FUNCTION
+
+STATE init 
+
+FIRST_STATE
+
+EVENT ENTER_STATE
+TIMER	100
+SET_HARNESS	0
+SND START
+SET stage 0
+SET nb_hit 0	
+SET hit	0
+SET tagging	1
+tag
+GOTO	tag
+
+END_EVENT
+
+END_STATE
+
+STATE tag 
+
+EVENT BUTTON_3_JUST_PRESSED
+IF tagging COMP	1
+	RFID_SCAN	scan_rfid
+	SET local 0
+	IF scan_rfid COMP	1
+		RFID_TYPE_MAJOR scan_rfid
+		IF scan_rfid COMP RFID_BASE_PACK 
+			RFID_TYPE_MINOR scan_rfid
+			IF scan_rfid COMP stage
+				SET local 1
+			END_IF
+		END_IF
+	END_IF
+	IF local COMP 1
+		FLASH_GREEN	10
+		SND SCAN_GOOD
+		shoot
+	ELSE
+		SND SCAN_BAD
+	END_IF
+ELSE
+	SND SCAN_BAD
+END_IF
+
+END_EVENT
+
+EVENT TIMER
+IF	timer	COMP	0
+	SET	timer	8
+	IF tagging		COMP	1
+		IF stage COMP 0
+			SND ASSIST_BASE1
+		ELSE
+			IF stage COMP 1
+				SND ASSIST_BASE2
+			ELSE
+				IF stage COMP 2
+					SND ASSIST_BASE3
+				ELSE
+					SND ASSIST_BASE4
+				END_IF
+			END_IF
+		END_IF
+	ELSE
+		SND ASSIST_UBICONNECT
+	END_IF
+END_IF
+DEC	timer
+
+END_EVENT
+
+EVENT BUTTON_2_JUST_PRESSED
+IF tagging COMP	0
+	IR
+	SND SHOOT
+	FLASH_ORANGE 10
+END_IF
+
+END_EVENT
+
+EVENT TICK
+IF tagging COMP	0
+	IF	hit	INF	nb_hit
+		SND SCAN_GOOD
+		INC stage
+		IF stage COMP nb_stage
+			SET stage 0
+		END_IF
+		tag
+	END_IF	
+END_IF
+SET	hit	nb_hit	
+
+END_EVENT
+
+END_STATE

@@ -1,0 +1,177 @@
+
+
+VAR id		CONFIG
+VAR bonus		RECEIVE
+VAR wolf_id		RECEIVE
+VAR wolf
+VAR nb_hit		SEND
+VAR last_type		SEND
+VAR score_inc		SEND
+VAR score		
+VAR timer
+VAR scan_ok
+VAR local
+VAR lastrfid_type
+
+
+FUNCTION wolf
+IF wolf	DIFF	1
+	SND_PRIO	SG04
+	SET	wolf	1
+	SET	timer	3
+	HUD_DIGIT	timer
+	LED_INFINITE	30
+	FLASH_RED	255
+	HUD_DIGIT_OFF	
+END_IF
+
+END_FUNCTION
+
+FUNCTION standard
+IF wolf	DIFF	0
+	ANIM_OFF
+	SET		wolf	0
+	LED_OFF
+	FLASH_RED	0
+	SET		timer	0
+	HUD_DIGIT_BLINK	score	
+	HUD_ICON_OFF	BULLET
+	HUD_JAUGE	0
+END_IF
+
+END_FUNCTION
+
+STATE init 
+
+FIRST_STATE
+
+EVENT ENTER_STATE
+SET_HARNESS		1
+SET	nb_hit 		0
+SND	START
+SET	wolf_id		0
+SET	wolf		1
+SET	score_inc		0
+SET	score 		0
+SET	last_type		255
+TIMER	100
+standard
+GOTO game
+
+END_EVENT
+
+END_STATE
+
+STATE game 
+
+EVENT BUTTON_2_JUST_PRESSED
+IF wolf COMP 1
+	IF	timer	COMP	0
+		ANIM		ASHT
+		SND		SHOOT
+		FLASH_GREEN	1
+		IR
+	END_IF
+END_IF
+
+END_EVENT
+
+EVENT HIT
+IF wolf COMP 0
+	SND	HURT
+	LED_ON	30	1
+	MOTOR	30
+	INC	nb_hit
+	SET	score_inc		score			
+	SET	score		0
+	HUD_DIGIT_BLINK	score
+ELSE
+	FLASH_RED	255
+END_IF
+
+END_EVENT
+
+EVENT ANIM_FINISHED
+HUD_ICON_ON	BULLET
+HUD_JAUGE_BLINK	1
+
+END_EVENT
+
+EVENT DATA_CHANGE
+wolf_id
+IF wolf_id SUP 0
+	wolf
+ELSE
+	IF wolf	COMP	1
+		SET	score		bonus
+	END_IF
+	standard
+END_IF
+
+END_EVENT
+
+EVENT TIMER
+IF	wolf	COMP	0
+	INC	timer
+	IF	timer 	SUP	3
+		SET	timer	0
+		IF	score	INF	10
+			SND	BIP
+			INC	score
+			HUD_DIGIT_BLINK	score	
+		END_IF
+	END_IF
+ELSE
+	IF	timer	SUP	0
+		DEC	timer
+		IF	timer	SUP	0
+			SND	BIP
+			HUD_DIGIT	timer	
+		ELSE
+			SND	START
+			HUD_DIGIT_OFF
+			HUD_ICON_ON	BULLET
+			HUD_JAUGE_BLINK	1
+		END_IF
+	END_IF
+END_IF
+IF wolf_id DIFF wolf
+	IF wolf_id SUP 0
+		wolf
+	ELSE
+		IF wolf	COMP	1
+			SET	score		bonus
+		END_IF
+		standard
+	END_IF
+END_IF
+
+END_EVENT
+
+EVENT BUTTON_3_JUST_PRESSED
+IF wolf COMP 0
+	RFID_SCAN	scan_ok
+	SET local	0
+	IF scan_ok COMP 1
+		RFID_TYPE_MAJOR 	lastrfid_type
+		IF lastrfid_type COMP RFID_BASE_PACK
+			RFID_TYPE_MINOR 	lastrfid_type
+			IF lastrfid_type DIFF last_type
+				SET	last_type 		lastrfid_type
+				SET	local 		1
+				SET	score_inc		score			
+				SET	score		0
+				HUD_DIGIT_BLINK	score
+				FLASH_GREEN	10
+				SND	SCAN_GOOD
+			END_IF
+		END_IF
+	END_IF
+END_IF
+IF local COMP	0
+	SND	SCAN_BAD
+END_IF
+
+END_EVENT
+
+END_STATE
