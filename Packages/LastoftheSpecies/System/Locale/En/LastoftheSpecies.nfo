@@ -1,0 +1,18 @@
+
+local nfo = {
+
+    class = "UALastoftheSpecies",
+
+    ["name"] = "Last of the Species",
+    ["description"] = "Last one to be a wolf is the loser.",
+    ["pictogram"] = "TheWolf.tga",
+    ["category"] = 2,
+
+
+    ["difficulty"] = 45,
+    ["flags"] = { "2-32 players", },
+    ["materials"] = {  },
+
+}
+
+return nfo

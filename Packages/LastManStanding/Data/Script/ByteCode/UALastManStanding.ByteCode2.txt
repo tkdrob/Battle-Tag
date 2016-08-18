@@ -1,0 +1,287 @@
+
+
+VAR nb_lifepoint	SEND
+VAR nb_ammo		SEND	
+VAR nb_clip		SEND
+VAR gunseconds		SEND
+VAR alter		RECEIVE
+VAR display
+VAR max_lifepoint	CONFIG
+VAR max_ammo	CONFIG	
+VAR max_clip		CONFIG
+VAR swap_on		CONFIG
+VAR medkit		CONFIG
+VAR lastrfid_type	
+VAR last_ammo_rfid	
+VAR last_medikit_rfid
+VAR scan_ok
+VAR local
+VAR timer
+VAR assist_timer
+
+
+FUNCTION hud
+IF	display 	DIFF		0
+	HUD_ICON_ON	LIFE
+	HUD_ICON_OFF	BULLET
+	HUD_DIGIT		nb_lifepoint
+	HUD_JAUGE	0
+ELSE
+	HUD_ICON_ON	BULLET
+	HUD_ICON_OFF	LIFE
+	IF	max_ammo	DIFF	20
+		IF	nb_ammo		SUP	0
+			HUD_DIGIT	nb_ammo
+			HUD_JAUGE	nb_clip
+		ELSE
+			HUD_DIGIT_BLINK	nb_ammo
+			HUD_JAUGE_BLINK	nb_clip
+		END_IF
+	ELSE
+		HUD_DIGIT_OFF
+		HUD_JAUGE_BLINK	1
+	END_IF
+END_IF
+
+END_FUNCTION
+
+FUNCTION reload
+SET	nb_clip		max_clip
+SET	nb_ammo		max_ammo
+DEC 	nb_clip
+IF swap_on COMP 2
+	SET 	last_ammo_rfid 	lastrfid_type
+END_IF
+SET	display		0
+GOTO	game
+
+END_FUNCTION
+
+FUNCTION medikit
+SET	nb_lifepoint	max_lifepoint
+IF swap_on SUP 0
+	SET 	last_medikit_rfid 	lastrfid_type
+END_IF
+SET	display		1
+GOTO	game
+
+END_FUNCTION
+
+FUNCTION respawn
+reload
+medikit
+SET 	last_ammo_rfid 	50
+SET 	last_medikit_rfid 	50
+
+END_FUNCTION
+
+FUNCTION get_hit
+SND	HURT
+LED_ON		30	1
+IF	nb_lifepoint	SUP	0
+	DEC	nb_lifepoint
+	MOTOR	30
+	SET display 1
+END_IF
+IF nb_lifepoint COMP 0
+	GOTO death
+END_IF
+hud
+
+END_FUNCTION
+
+STATE init 
+
+FIRST_STATE
+
+EVENT ENTER_STATE
+TIMER		100
+SET	gunseconds	0
+SET 	local 		0
+SET	assist_timer	0
+IF max_lifepoint COMP 0
+	SET	nb_lifepoint 0
+	GOTO death
+ELSE
+	SND		START
+	respawn
+END_IF
+
+END_EVENT
+
+END_STATE
+
+STATE game 
+
+EVENT BUTTON_2_JUST_PRESSED
+IF alter INF 7
+	SET	display		0
+	IF	nb_ammo		SUP	0
+		IF	max_ammo	DIFF	20	
+			DEC		nb_ammo
+		ELSE
+			ANIM		ASHT
+		END_IF
+		SND_PRIO	SHOOT
+		FLASH_ORANGE	1
+		IR
+		IF	nb_ammo	COMP	3
+			IF nb_clip COMP 0
+				SND_PRIO	SD01
+			END_IF
+		END_IF
+	ELSE
+		IF nb_clip COMP 0
+			INC local
+			IF	local	SUP	5
+				SND_PRIO	ASSIST_SCANAMMO
+				SET local 0
+			END_IF
+		END_IF
+	END_IF
+	hud
+	SND		EMPTY
+END_IF
+
+END_EVENT
+
+EVENT BUTTON_3_JUST_PRESSED
+RFID_SCAN	scan_ok
+IF scan_ok COMP 1
+	RFID_TYPE_MAJOR	lastrfid_type
+	IF lastrfid_type COMP RFID_AMMO_PACK
+		RFID_TYPE_MINOR lastrfid_type
+		IF lastrfid_type DIFF last_ammo_rfid
+			GOTO	reload
+		END_IF
+	END_IF
+	IF alter INF 1
+		IF	medkit	COMP	1
+			IF lastrfid_type COMP RFID_LIFE_PACK
+				RFID_TYPE_MINOR lastrfid_type
+				IF lastrfid_type DIFF last_medikit_rfid
+					GOTO	medikit
+				END_IF
+			END_IF
+		END_IF
+	END_IF
+END_IF
+SND	SCAN_BAD
+
+END_EVENT
+
+EVENT HIT
+get_hit
+
+END_EVENT
+
+EVENT BUTTON_1_JUST_PRESSED
+IF alter INF 6
+	SND	BIP
+	INC display
+	IF display SUP 1
+		SET display 0
+	END_IF
+END_IF
+hud
+
+END_EVENT
+
+EVENT TIMER
+IF	medkit COMP 1
+	IF nb_lifepoint COMP	1
+		IF	assist_timer	COMP	0
+			SND_PRIO	ASSIST_SCANLIFE
+			SET	assist_timer	5
+		END_IF
+		DEC	assist_timer
+	END_IF
+END_IF	
+IF	nb_ammo		COMP	0
+	IF nb_clip SUP 0
+		DEC 	nb_clip
+		SND	RELOAD
+		SET	nb_ammo		max_ammo
+		hud
+	END_IF
+END_IF
+INC gunseconds
+
+END_EVENT
+
+EVENT ENTER_STATE
+hud
+
+END_EVENT
+
+EVENT ANIM_FINISHED
+HUD_JAUGE_BLINK	1
+
+END_EVENT
+
+EVENT DATA_CHANGE
+IF alter COMP 0
+	SET_HARNESS	1
+END_IF
+
+END_EVENT
+
+END_STATE
+
+STATE reload 
+
+EVENT ENTER_STATE
+SND	RELOAD_CLIP
+FLASH_GREEN	1
+ANIM ARAM
+
+END_EVENT
+
+EVENT ANIM_FINISHED
+reload
+SND_PRIO	OK
+
+END_EVENT
+
+EVENT HIT
+get_hit
+
+END_EVENT
+
+END_STATE
+
+STATE death 
+
+EVENT ENTER_STATE
+LED_INFINITE	30
+FLASH_RED	255
+ANIM_LOOP	AOUT
+SND_PRIO 	DEAD
+
+END_EVENT
+
+END_STATE
+
+STATE medkit 
+
+EVENT ENTER_STATE
+SND	SCAN_GOOD
+FLASH_GREEN	1	
+ANIM	AMED
+
+END_EVENT
+
+EVENT ANIM_FINISHED
+medikit
+SND_PRIO	OK
+
+END_EVENT
+
+EVENT HIT
+medikit
+ANIM_OFF
+get_hit
+
+END_EVENT
+
+END_STATE

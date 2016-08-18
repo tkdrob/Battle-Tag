@@ -1,0 +1,18 @@
+
+local nfo = {
+
+    class = "UAStalktheLantern",
+
+    ["name"] = "Stalk la Lanterne",
+    ["description"] = "Stalkers et défenseurs bataille pour le contrôle de la lanterne.",
+    ["pictogram"] = "StalktheLantern.tga",
+    ["category"] = 3,
+
+
+    ["difficulty"] = 70,
+    ["flags"] = { "2-32 players", "2 teams",},
+    ["materials"] = { 0x03000030, 0x03000031, 0x03000040, 0x03000041, 0x03000050, 0x03000051, },
+
+}
+
+return nfo

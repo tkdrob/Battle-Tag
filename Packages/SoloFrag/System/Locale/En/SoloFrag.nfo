@@ -1,0 +1,18 @@
+
+local nfo = {
+
+    class = "UASoloFrag",
+
+    ["name"] = "Solo Frag",
+    ["description"] = "Players fight each other to score frags.",
+    ["pictogram"] = "freeforall.tga",
+    ["category"] = 1,
+
+
+    ["difficulty"] = 40,
+    ["flags"] = { "2-32 players",},
+    ["materials"] = { 0x03000030, 0x03000031, 0x03000040, 0x03000041, },
+
+}
+
+return nfo

@@ -1,0 +1,18 @@
+
+local nfo = {
+
+    class = "UAProTeamFrag",
+
+    ["name"] = "Team Frag Pro",
+    ["description"] = "Teams fighting each other to score frags. Additional options.",
+    ["pictogram"] = "ProTeamFrag.tga",
+    ["category"] = 3,
+
+
+    ["difficulty"] = 50,
+    ["flags"] = { "2-32 players", "2-6 teams",},
+    ["materials"] = { 0x03000030, 0x03000031, 0x03000040, 0x03000041, 0x03000050, 0x03000051, 0x03000052, 0x03000053, 0x03000054, 0x03000055,},
+
+}
+
+return nfo

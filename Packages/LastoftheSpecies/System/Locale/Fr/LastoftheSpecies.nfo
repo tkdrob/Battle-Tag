@@ -1,0 +1,18 @@
+
+local nfo = {
+
+    class = "UALastoftheSpecies",
+
+    ["name"] = "Last of the Species",
+    ["description"] = "Attention au Loup de Mars ! Il va essayer de voler votre corps…",
+    ["pictogram"] = "TheWolf.tga",
+    ["category"] = 2,
+
+
+    ["difficulty"] = 45,
+    ["flags"] = { "2-32 joueurs", },
+    ["materials"] = { },
+
+}
+
+return nfo

@@ -1,0 +1,18 @@
+
+local nfo = {
+
+    class = "UALastManStanding",
+
+    ["name"] = "Le Survivant",
+    ["description"] = "Jouez jusqu'à ce qu'il n'y ait plus qu'un seul joueur en jeu.",
+    ["pictogram"] = "LastManStanding.tga",
+    ["category"] = 1,
+
+
+    ["difficulty"] = 40,
+    ["flags"] = { "2-32 joueurs",},
+    ["materials"] = { 0x03000030, 0x03000031, 0x03000040, 0x03000041, },
+
+}
+
+return nfo

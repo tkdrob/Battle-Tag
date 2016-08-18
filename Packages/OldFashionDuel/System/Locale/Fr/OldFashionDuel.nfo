@@ -1,0 +1,16 @@
+
+local nfo = {
+
+    class = "UAOldFashionDuel",
+
+    ["name"] = "Duel de cowboys",
+    ["description"] = "Une ville, deux types qui se font face, deux T-Blasters…\nDevinez ce qui va arriver ?",
+    ["pictogram"] = "OldFashionDuel.tga",
+    ["category"] = 1,
+
+    ["difficulty"] = 20,
+    ["flags"] = { "2 joueurs", },
+
+}
+
+return nfo

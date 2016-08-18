@@ -1,0 +1,16 @@
+
+local nfo = {
+
+    class = "UAOldFashionDuel",
+
+    ["name"] = "Wild West Duel",
+    ["description"] = "One town, two guys facing each other, two Blasters...\nGuess what happens ?",
+    ["pictogram"] = "OldFashionDuel.tga",
+    ["category"] = 1,
+
+    ["difficulty"] = 20,
+    ["flags"] = { "2 players", },
+
+}
+
+return nfo
