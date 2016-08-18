@@ -1,0 +1,18 @@
+
+local nfo = {
+
+    class = "UATeamFrag",
+
+    ["name"] = "Match en équipe",
+    ["description"] = "Les équipes s'affrontent pour marquer des points en tirant sur leurs adversaires.",
+    ["pictogram"] = "TeamFrag.tga",
+    ["category"] = 3,
+
+
+    ["difficulty"] = 50,
+    ["flags"] = { "2-8 joueurs", "2-4 équipes",},
+    ["materials"] = { 0x03000030, 0x03000031, 0x03000040, 0x03000041, 0x03000050, 0x03000051, 0x03000052, 0x03000053, },
+
+}
+
+return nfo

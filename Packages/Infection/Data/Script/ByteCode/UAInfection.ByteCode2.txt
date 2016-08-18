@@ -1,0 +1,311 @@
+
+
+VAR id		CONFIG
+VAR infectiontime	CONFIG
+VAR respawntime	CONFIG
+VAR max_ammo	
+VAR max_clip		
+VAR swap_on		
+VAR bonus		RECEIVE
+VAR wolf_id		RECEIVE
+VAR wolf
+VAR nb_hit		SEND
+VAR last_type		SEND
+VAR score_inc		SEND
+VAR score
+VAR local		
+VAR timer
+VAR assist_timer
+VAR scan_ok
+VAR lastrfid_type
+VAR lastrfid_minortype
+VAR zombie_life
+VAR hit_timer
+VAR zombie
+VAR survivor
+VAR nb_lifepoint
+VAR display
+VAR lifedown
+
+
+FUNCTION wolf
+SND_PRIO	DEAD
+SET	wolf	1
+SET	timer	3
+SET	zombie_life	3
+SET_TEAM	zombie
+LED_INFINITE	30
+FLASH_RED	255
+
+END_FUNCTION
+
+FUNCTION standard
+
+ANIM_OFF
+SET_TEAM	survivor
+SET		wolf	0
+LED_OFF	
+FLASH_RED	0
+SET		timer	0
+
+END_FUNCTION
+
+FUNCTION hud
+IF	display 	COMP		0
+	HUD_ICON_ON	BULLET
+	HUD_ICON_OFF	LIFE
+	HUD_ICON_OFF	GOAL
+	HUD_JAUGE_BLINK	1
+	HUD_DIGIT_OFF
+ELSE
+	HUD_ICON_OFF	BULLET
+	IF	display 	COMP		1
+		HUD_ICON_ON	LIFE
+		HUD_ICON_OFF	GOAL
+		HUD_DIGIT	nb_lifepoint
+		HUD_JAUGE	0
+	ELSE
+		HUD_ICON_OFF	LIFE
+		HUD_ICON_ON	GOAL
+		HUD_DIGIT_BLINK	score
+	END_IF
+END_IF
+
+END_FUNCTION
+
+STATE init
+
+FIRST_STATE
+
+EVENT ENTER_STATE
+TIMER	100
+SET_HARNESS		1
+SET	nb_hit 		0
+SET	score_inc		0
+SET	score 		0
+SET	last_type		255
+SET	zombie		1
+SET	survivor		2
+SET	nb_lifepoint	1
+SET	lifedown		0
+SET	lastrfid_minortype 	0
+SND	START
+standard
+GOTO game
+
+END_EVENT
+
+END_STATE
+
+STATE game
+
+EVENT BUTTON_2_JUST_PRESSED
+IF wolf COMP 1
+	IF	timer	COMP	0
+		ANIM		ASHT
+		SND		SHOOT
+		FLASH_GREEN	1
+		IR
+	END_IF
+ELSE
+	ANIM		ASHT
+	SND		SHOOT
+	FLASH_ORANGE	1
+	IR
+END_IF
+
+END_EVENT
+
+EVENT HIT
+IF   wolf  COMP  0
+	SND	HURT
+	LED_ON		30	1
+	MOTOR	30
+	IF nb_lifepoint	SUP	1
+		DEC	nb_lifepoint
+
+		SET display 1
+	ELSE	
+		SET	score_inc		score
+		SET	score 	0
+		GOTO	infected
+	END_IF
+	hud
+ELSE
+	IF zombie_life	SUP	1
+		DEC	zombie_life
+		SND	HURT
+		MOTOR	30
+	ELSE
+		GOTO	respawn
+	END_IF
+END_IF
+
+END_EVENT
+
+EVENT TIMER
+IF	wolf  	COMP 	0
+	INC	timer
+	IF	timer 	SUP	3
+		SET	timer	0
+		IF	score	INF	8
+			SND	BIP
+			INC	score
+			SET display 2
+			HUD_DIGIT_BLINK	score
+			HUD_ICON_OFF	LIFE
+		END_IF
+	END_IF
+	hud
+ELSE
+	IF	timer	SUP	0
+		DEC	timer
+		IF	timer	SUP	0
+			SND	BIP
+			HUD_DIGIT	timer	
+		ELSE
+			hud
+			SND	START
+		END_IF
+	END_IF
+END_IF
+
+END_EVENT
+
+EVENT BUTTON_3_JUST_PRESSED
+IF wolf COMP 0
+	RFID_SCAN	scan_ok
+	IF scan_ok COMP 1
+		RFID_TYPE_MAJOR 	lastrfid_type
+		IF lastrfid_type COMP RFID_BASE_PACK
+			RFID_TYPE_MINOR	lastrfid_minortype
+			IF lastrfid_minortype DIFF last_type
+				SET	last_type 		lastrfid_minortype
+				SET	score_inc		score			
+				SET	score		0
+				HUD_DIGIT_BLINK	score
+				FLASH_GREEN	10
+				SND	SCAN_GOOD
+			ELSE
+				SND	SCAN_BAD
+			END_IF
+		END_IF
+	END_IF
+END_IF
+
+END_EVENT
+
+EVENT DATA_CHANGE
+wolf_id
+IF wolf_id SUP 0
+	SET display 0
+	wolf
+ELSE
+	IF wolf	COMP	1
+		SET	score		bonus
+	END_IF
+	standard
+END_IF
+
+END_EVENT
+
+EVENT ANIM_FINISHED
+HUD_JAUGE_BLINK	1
+
+END_EVENT
+
+EVENT BUTTON_1_JUST_PRESSED
+IF wolf COMP 0
+	SND	BIP
+	INC display
+	IF display SUP 2
+		SET display 0
+	END_IF
+hud
+END_IF
+
+END_EVENT
+
+END_STATE
+
+STATE infected
+
+EVENT ENTER_STATE
+SET  hit_timer infectiontime
+ANIM_OFF
+
+END_EVENT
+
+EVENT BUTTON_3_JUST_PRESSED
+RFID_SCAN	scan_ok
+IF scan_ok COMP 1
+	RFID_TYPE_MAJOR 	lastrfid_type
+	IF lastrfid_type COMP RFID_LIFE_PACK
+		SET	score	3
+		FLASH_GREEN	10
+		SET	nb_lifepoint	1
+		INC	lifedown
+		SND	SCAN_GOOD
+		IF	lifedown	INF	2
+			SET	nb_lifepoint	10
+		ELSE
+			IF	lifedown	COMP	2
+				SET	nb_lifepoint	8
+			ELSE
+				IF	lifedown	COMP	3
+					SET	nb_lifepoint	5
+				ELSE
+					IF	lifedown	SUP	3
+						SET	nb_lifepoint	3
+					END_IF
+				END_IF
+			END_IF
+		END_IF
+		SET display 1
+		hud
+		GOTO	game
+	ELSE
+		SND_PRIO	SCAN_BAD
+	END_IF
+ELSE
+	SND_PRIO	SCAN_BAD
+END_IF
+
+END_EVENT
+
+EVENT TIMER
+IF 	hit_timer	SUP	1
+	DEC	 hit_timer
+	HUD_DIGIT	hit_timer
+	SND	HURT
+ELSE
+	MOTOR	30
+	INC	nb_hit
+	GOTO	game
+END_IF
+
+END_EVENT
+
+END_STATE
+
+STATE respawn
+
+EVENT ENTER_STATE
+SET	timer	respawntime
+ANIM_OFF
+
+END_EVENT
+
+EVENT TIMER
+IF	timer	COMP	0
+	SND_PRIO	RESPAWN
+	GOTO game
+ELSE
+	DEC		timer	
+	HUD_DIGIT	timer	
+	SND	BIP
+END_IF
+
+END_EVENT
+
+END_STATE

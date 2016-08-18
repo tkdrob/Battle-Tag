@@ -1,0 +1,15 @@
+
+local nfo = {
+
+    class = "UAFreeFrag",
+
+    ["name"] = "Match Libre",
+    ["description"] = "Pas de munition, de Point de Vie ou de mission.\nVous n'avez qu'une seule chose à faire, tirer sur les autres joueurs !",
+    ["pictogram"] = "FreeFrag.tga",
+
+    ["difficulty"] = 10,
+    ["flags"] = { "2-32 joueurs", },
+    ["category"] = 3,
+}
+
+return nfo

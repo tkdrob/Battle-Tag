@@ -1,0 +1,390 @@
+
+
+VAR nb_lifepoint	SEND
+VAR nb_ammo		SEND	
+VAR nb_clip		SEND
+VAR gunseconds		SEND
+VAR hillscanned		SEND
+VAR alter		RECEIVE
+VAR display
+VAR max_lifepoint	CONFIG
+VAR max_ammo	CONFIG
+VAR max_clip		CONFIG
+VAR swap_on		CONFIG
+VAR respawn_time	CONFIG
+VAR team_base		CONFIG
+VAR team_frag		CONFIG
+VAR lastrfid_type	
+VAR last_ammo_rfid	
+VAR last_medikit_rfid	
+VAR scan_ok
+VAR timer
+VAR max_lives	CONFIG
+VAR respawnmode		CONFIG
+VAR respawntimer	CONFIG
+VAR lives
+
+
+FUNCTION hud
+HUD_ICON_OFF	GOAL
+IF	display 	DIFF		0
+	HUD_ICON_ON	LIFE
+	HUD_ICON_OFF	BULLET
+	IF lives INF 6
+		HUD_JAUGE	lives
+	ELSE
+		HUD_JAUGE_BLINK	1
+	END_IF
+	HUD_DIGIT	nb_lifepoint
+ELSE
+	HUD_ICON_ON	BULLET
+	HUD_ICON_OFF	LIFE
+	IF	max_ammo	DIFF	20
+		IF	nb_ammo		SUP	0
+			HUD_DIGIT	nb_ammo
+			HUD_JAUGE	nb_clip
+		ELSE
+			HUD_DIGIT_BLINK	nb_ammo
+			HUD_JAUGE_BLINK	nb_clip
+		END_IF
+	ELSE
+		HUD_DIGIT_OFF
+		HUD_JAUGE_BLINK	1
+	END_IF
+END_IF
+
+END_FUNCTION
+
+FUNCTION reload
+SET	nb_clip		max_clip
+SET	nb_ammo		max_ammo
+DEC 	nb_clip
+IF swap_on COMP 2
+	SET 	last_ammo_rfid 	lastrfid_type
+END_IF
+SET	display		0
+GOTO	game
+
+END_FUNCTION
+
+FUNCTION medikit
+SET	nb_lifepoint	max_lifepoint
+IF swap_on SUP 0
+	SET 	last_medikit_rfid 	lastrfid_type
+END_IF
+SET	display		1
+GOTO	game
+
+END_FUNCTION
+
+FUNCTION respawn
+DEC lives
+reload
+medikit
+SET 	last_ammo_rfid 	50
+SET 	last_medikit_rfid 	50
+
+END_FUNCTION
+
+FUNCTION get_hit
+SND	HURT
+LED_ON		30	1
+IF	nb_lifepoint	SUP	0
+	DEC	nb_lifepoint
+	MOTOR	30
+	SET display 1
+END_IF
+IF nb_lifepoint COMP 0
+	GOTO	death
+END_IF
+hud
+
+END_FUNCTION
+
+STATE init 
+
+FIRST_STATE
+
+EVENT ENTER_STATE
+TIMER		100
+SET	gunseconds	0
+IF team_frag COMP 0
+	SET_TEAM	team_base
+END_IF
+SET lives max_lives
+DEC team_base
+SND START
+respawn
+
+END_EVENT
+
+END_STATE
+
+STATE game 
+
+EVENT BUTTON_2_JUST_PRESSED
+IF alter INF 7
+	SET	display		0
+	IF	nb_ammo		SUP	0
+		IF	max_ammo	DIFF	20	
+			DEC		nb_ammo
+		ELSE
+			ANIM		ASHT
+		END_IF
+		SND_PRIO	SHOOT
+		FLASH_ORANGE	1
+		IR
+	END_IF
+	hud
+	SND		EMPTY
+END_IF
+
+END_EVENT
+
+EVENT BUTTON_3_JUST_PRESSED
+RFID_SCAN	scan_ok
+IF scan_ok COMP 1
+	RFID_TYPE_MAJOR	lastrfid_type
+	IF lastrfid_type COMP RFID_AMMO_PACK
+		RFID_TYPE_MINOR lastrfid_type
+		IF lastrfid_type DIFF last_ammo_rfid
+			GOTO	reload
+		END_IF
+	END_IF
+	IF alter INF 6
+		IF lastrfid_type COMP RFID_LIFE_PACK
+			RFID_TYPE_MINOR lastrfid_type
+			IF lastrfid_type DIFF last_medikit_rfid
+				GOTO	medikit
+			END_IF
+		END_IF
+		IF lastrfid_type COMP RFID_BASE_PACK
+			RFID_TYPE_MINOR lastrfid_type
+			SET hillscanned lastrfid_type
+			SND_PRIO	SC01
+			SET timer 2
+		END_IF
+	END_IF
+END_IF
+SND	SCAN_BAD
+
+END_EVENT
+
+EVENT HIT
+get_hit
+
+END_EVENT
+
+EVENT BUTTON_1_JUST_PRESSED
+IF alter INF 6
+	SND	BIP
+	INC display
+	IF display SUP 1
+		SET display 0
+	END_IF
+END_IF
+hud
+
+END_EVENT
+
+EVENT TIMER
+IF	nb_ammo		COMP	0
+	IF nb_clip SUP 0
+		DEC 	nb_clip
+		SND	RELOAD
+		SET	nb_ammo		max_ammo
+		hud
+	END_IF
+END_IF
+IF timer COMP 1
+	SND_PRIO	SCAN_BAD
+	SET hillscanned 10
+END_IF
+IF timer INF 3
+	DEC timer
+END_IF
+INC gunseconds
+
+END_EVENT
+
+EVENT ENTER_STATE
+hud
+
+END_EVENT
+
+EVENT ANIM_FINISHED
+HUD_JAUGE_BLINK	1
+
+END_EVENT
+
+EVENT DATA_CHANGE
+IF alter COMP 0
+	SET_HARNESS	1
+ELSE
+	IF alter INF 3
+		SET hillscanned 10
+		SET timer 0
+		FLASH_GREEN	1
+		SND_PRIO	OK
+	END_IF
+END_IF
+
+END_EVENT
+
+END_STATE
+
+STATE reload 
+
+EVENT ENTER_STATE
+SND	RELOAD_CLIP
+FLASH_GREEN	1
+ANIM	ARAM
+
+END_EVENT
+
+EVENT ANIM_FINISHED
+reload
+
+END_EVENT
+
+EVENT HIT
+get_hit
+
+END_EVENT
+
+END_STATE
+
+STATE medikit 
+
+EVENT ENTER_STATE
+SND	SCAN_GOOD
+FLASH_GREEN	1	
+ANIM	AMED
+
+END_EVENT
+
+EVENT ANIM_FINISHED
+medikit
+
+END_EVENT
+
+EVENT HIT
+medikit
+ANIM_OFF
+get_hit
+
+END_EVENT
+
+END_STATE
+
+STATE respawn 
+
+EVENT ENTER_STATE
+SND_PRIO	SCAN_GOOD
+ANIM_OFF
+SET	timer	respawn_time
+
+END_EVENT
+
+EVENT HIT
+SET timer respawn_time
+
+END_EVENT
+
+EVENT TIMER
+IF	timer	INF	2
+	SND_PRIO	RESPAWN
+	LED_OFF
+	FLASH_RED	0
+	respawn	
+ELSE
+	DEC		timer	
+	HUD_DIGIT	timer	
+	SND	BIP
+END_IF
+
+END_EVENT
+
+END_STATE
+
+STATE death 
+
+EVENT ENTER_STATE
+SND_PRIO	DEAD
+IF lives COMP 0
+	ANIM_LOOP AOUT
+	SET respawntimer 0
+ELSE
+	SET timer respawntimer
+	LED_INFINITE	30
+	FLASH_RED	255
+	IF respawnmode COMP 1
+		GOTO respawn
+	END_IF
+	IF 	team_base	COMP	0
+		ANIM_LOOP	AGB1
+	ELSE
+		IF 	team_base	COMP	1
+			ANIM_LOOP	AGB2
+		ELSE
+			IF 	team_base	COMP	2
+				ANIM_LOOP	AGB3
+			ELSE
+				IF 	team_base	COMP	3
+					ANIM_LOOP	AGB4
+				ELSE
+					ANIM_OFF
+					HUD_ICON_ON	GOAL
+					INC team_base
+					HUD_DIGIT_BLINK	team_base
+					DEC team_base
+				END_IF
+			END_IF
+		END_IF
+	END_IF
+END_IF
+
+END_EVENT
+
+EVENT BUTTON_3_JUST_PRESSED
+RFID_SCAN	scan_ok
+IF scan_ok COMP 1
+	RFID_TYPE_MAJOR	lastrfid_type
+	IF lives DIFF 0
+		IF lastrfid_type COMP RFID_BASE_PACK
+			RFID_TYPE_MINOR	lastrfid_type	
+			IF lastrfid_type COMP team_base
+				FLASH_GREEN	10
+				GOTO respawn
+			END_IF
+		END_IF
+	END_IF
+END_IF
+SND	SCAN_BAD
+
+END_EVENT
+
+EVENT TIMER
+IF lives DIFF 0
+	IF respawntimer SUP 0
+		IF timer SUP 0
+			DEC timer
+			SND	BIP
+			IF timer INF 20
+				ANIM_OFF
+				HUD_DIGIT timer
+			ELSE
+				ANIM_LOOP AGB1
+			END_IF
+		ELSE
+			SET lives 0
+			ANIM_LOOP AOUT
+			LED_OFF
+			FLASH_RED	0
+		END_IF
+	END_IF
+END_IF
+
+END_EVENT
+
+END_STATE

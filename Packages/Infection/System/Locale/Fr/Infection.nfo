@@ -1,0 +1,18 @@
+
+local nfo = {
+
+    class = "UAInfection",
+
+    ["name"] = "Infection",
+    ["description"] = "Ils continuent juste à venir! ... Allez-vous survivre l'infection?!?",
+    ["pictogram"] = "Infection.tga",
+    ["category"] = 2,
+
+
+    ["difficulty"] = 45,
+    ["flags"] = { "3-32 joueurs", },
+    ["materials"] = { 0x03000050, 0x03000051, 0x03000052, 0x03000053, 0x03000030, 0x03000031, },
+
+}
+
+return nfo

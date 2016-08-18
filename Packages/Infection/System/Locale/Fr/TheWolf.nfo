@@ -1,0 +1,18 @@
+
+local nfo = {
+
+    class = "UATheWolf",
+
+    ["name"] = "Le Loup de Mars",
+    ["description"] = "Attention au Loup de Mars ! Il va essayer de voler votre corps…",
+    ["pictogram"] = "TheWolf.tga",
+    ["category"] = 3,
+
+
+    ["difficulty"] = 60,
+    ["flags"] = { "3-8 joueurs", },
+    ["materials"] = { 0x03000050, 0x03000051, 0x03000052, 0x03000053, },
+
+}
+
+return nfo

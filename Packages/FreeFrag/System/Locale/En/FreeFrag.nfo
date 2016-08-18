@@ -1,0 +1,16 @@
+
+local nfo = {
+
+    class = "UAFreeFrag",
+
+    ["name"] = "Free Frag",
+    ["description"] = "Infinite Ammunition,\nInfinite Health Points,\nno Missions,\njust shoot them all!",
+    ["pictogram"] = "FreeFrag.tga",
+
+    ["difficulty"] = 10,
+    ["flags"] = { "2-32 players", },
+    ["category"] = 1,
+
+}
+
+return nfo

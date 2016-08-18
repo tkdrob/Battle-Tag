@@ -1,0 +1,18 @@
+
+local nfo = {
+
+    class = "UAHostageSituation",
+
+    ["name"] = "Prise D'otage",
+    ["description"] = "Deux compagnies se disputent les Réserves d'énergie de la planète, mais il ne reste plus grand-chose à exploiter. La solution ? Voler les stocks de la concurrence !",
+    ["pictogram"] = "HostageSituation.tga",
+    ["category"] = 3,
+
+
+    ["difficulty"] = 70,
+    ["flags"] = { "2-32 joueurs", "2 équipes",},
+    ["materials"] = { 0x03000030, 0x03000031, 0x03000040, 0x03000041, 0x03000050, 0x03000051, 0x03000052, 0x03000053, },
+
+}
+
+return nfo
