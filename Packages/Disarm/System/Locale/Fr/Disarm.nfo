@@ -1,0 +1,18 @@
+
+local nfo = {
+
+    class = "UADisarm",
+
+    ["name"] = "Désarmer",
+    ["description"] = "Essayez de désamorcer la bombe avant le temps s'épuise.",
+    ["pictogram"] = "Disarm.tga",
+    ["category"] = 3,
+
+
+    ["difficulty"] = 60,
+    ["flags"] = { "3-32 joueurs", "2 équipes",},
+    ["materials"] = { 0x03000030, 0x03000031, 0x03000040, 0x03000041, 0x03000050, 0x03000051, 0x03000052, 0x03000053, },
+
+}
+
+return nfo
