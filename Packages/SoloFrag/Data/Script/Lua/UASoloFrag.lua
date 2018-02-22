@@ -78,6 +78,7 @@ function UASoloFrag:__ctor(...)
             [4] = { label = l"goption018", tip = l"tip150", choices = { { value = 0 }, { value = 1 }, { value = 3 }, { value = 5 }, { value = 7 }, { value = 10 } }, index = "lifePoints", },
             [5] = { label = l"goption017", tip = l"tip151", choices = { { value = 3 }, { value = 5 }, { value = 7 }, { value = 10 }, { value = 15 }, { value = 0, text = "", icon = "base:texture/ui/components/uiradiobutton_infinity.tga" } }, index = "lives", },
             [6] = { label = l"goption035", tip = l"tip152", choices = { { value = 0, displayMode = "medium", text = l"oth076"}, { value = 5 }, { value = 7 }, { value = 10 }, { value = 15 }, { value = 20 }, }, index = "regen", },
+            [7] = { label = l"goption009", tip = l"tip035", choices = { { value = 0, displayMode = "medium", text = l"oth076"}, { value = 1, displayMode = "medium", text = l"oth075"}, }, index = "medkit", },
 
             },
         },
@@ -91,8 +92,9 @@ function UASoloFrag:__ctor(...)
         respawnMode = 0,
         respawnTime = 0,
         swap = 0,
+        medkit = 0,
         lives = 10,
-        regen =0,
+        regen = 0,
 
 		-- no team
 
@@ -292,6 +294,8 @@ function UASoloFrag:InitEntityHeapData(entity, ranking)
 		end
 	end
 	entity.data.heap.regen = activity.settings.regen
+	entity.data.heap.swap = activity.settings.swap
+	entity.data.heap.medkit = activity.settings.medkit
 	if (activity.settings.ammunitions == 255) then
 		entity.data.heap.ammunitions = activity.settings.ammunition
 		entity.data.heap.ammunitionsAndClips = "-/-"
