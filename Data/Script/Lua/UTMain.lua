@@ -19,8 +19,8 @@ REG_TRACKING = true
 
 REG_MAJORREVISION = 2 -- firmware revision, updates are forced when major revision is changed
 REG_MINORREVISION = 0
-REG_BUILD = 455 -- 101354
-REG_BUILDBETA = "b"
+REG_BUILD = 456 -- 101354
+REG_BUILDBETA = ""
 
 IS_MAJORREVISION = 1 -- installshield revision
 IS_MINORREVISION = 2
