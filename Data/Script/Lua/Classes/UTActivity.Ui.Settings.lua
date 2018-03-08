@@ -102,6 +102,11 @@ function UTActivity.Ui.Settings:__ctor(...)
             				end
             			end
 					end
+					if (self.option.index == "teamFrag") then
+						if (value == 0 and activity.settings.numberOfTeams > 4) then
+							activity.settings.numberOfTeams = 4
+						end
+					end
 					if (self.option.index == "bonusmin" and value == 0) then
 						activity.settings.bonusmax = 0
 					end
@@ -193,49 +198,11 @@ function UTActivity.Ui.Settings:__ctor(...)
 		
 		local __self = self
 		
-		self.uiButton2.OnAction = function (self)
+		self.uiButton2.OnAction = function ()
 		
-		    table.foreach(__self.uiOptions, function (_, uiOption)
-		
-			    activity.settings[uiOption.option.index] = uiOption.value
-			    --print(uiOption.option.index.." "..activity.settings[uiOption.option.index].." "..uiOption.value)
-		
-			end )
-		
-			quartz.framework.audio.loadsound("base:audio/ui/validation.wav")
-			quartz.framework.audio.loadvolume(game.settings.audio["volume:sfx"])
-			quartz.framework.audio.playsound()
-		    
-			if (game and game.settings) then
-		
-				if (not game.settings.activities) then
-					
-					game.settings.activities = {}
-					
-				end
-				
-				if (not game.settings.activities[activity.name]) then
-					
-					game.settings.activities[activity.name] = {}
-						
-				end
-					
-				local settings = game.settings.activities[activity.name]
-		
-				for key, value in pairs(activity.settings) do
-						
-					if (type(activity.settings[key]) ~= "table") then
-						
-						settings[key] = activity.settings[key]
-							
-					end
-				end
-			        
-				game:SaveSettings()
-					
-			end
-				
+		    self:Save(self)
 			activity:PostStateChange("advancedsettings")
+
 		end
 	end
 	
@@ -248,47 +215,9 @@ function UTActivity.Ui.Settings:__ctor(...)
 
     local __self = self
 
-	self.uiButton5.OnAction = function (self) 
+	self.uiButton5.OnAction = function () 
 
-	    table.foreach(__self.uiOptions, function (_, uiOption)
-
-	        activity.settings[uiOption.option.index] = uiOption.value
-	        --print(uiOption.option.index.." "..activity.settings[uiOption.option.index].." "..uiOption.value)
-
-	    end )
-
-		quartz.framework.audio.loadsound("base:audio/ui/validation.wav")
-		quartz.framework.audio.loadvolume(game.settings.audio["volume:sfx"])
-		quartz.framework.audio.playsound()
-    
-		if (game and game.settings) then
-
-			if (not game.settings.activities) then
-			
-				game.settings.activities = {}
-			
-			end
-		
-			if (not game.settings.activities[activity.name]) then
-			
-				game.settings.activities[activity.name] = {}
-				
-			end
-			
-			local settings = game.settings.activities[activity.name]
-
-			for key, value in pairs(activity.settings) do
-				
-				if (type(activity.settings[key]) ~= "table") then
-				
-					settings[key] = activity.settings[key]
-					
-				end
-			end
-	        
-			game:SaveSettings()
-			
-		end
+		self:Save(self)
 
 	    if (activity.forward2) then
             activity:PostStateChange("playersmanagement")
@@ -296,6 +225,114 @@ function UTActivity.Ui.Settings:__ctor(...)
             activity:PostStateChange("playground")
         end
 
+	end
+
+end
+
+function UTActivity.Ui.Settings:OnOpen()
+
+	self:Activate()
+end
+
+function UTActivity.Ui.Settings:OnClose()
+
+	self:Deactivate()
+end
+
+function UTActivity.Ui.Settings:Save(__self)
+
+	table.foreach(__self.uiOptions, function (_, uiOption)
+		
+		activity.settings[uiOption.option.index] = uiOption.value
+		--print(uiOption.option.index.." "..activity.settings[uiOption.option.index].." "..uiOption.value)
+		
+	end )
+		
+	quartz.framework.audio.loadsound("base:audio/ui/validation.wav")
+	quartz.framework.audio.loadvolume(game.settings.audio["volume:sfx"])
+	quartz.framework.audio.playsound()
+		    
+	if (game and game.settings) then
+		
+		if (not game.settings.activities) then
+					
+			game.settings.activities = {}
+					
+		end
+				
+		if (not game.settings.activities[activity.name]) then
+					
+			game.settings.activities[activity.name] = {}
+						
+		end
+					
+		local settings = game.settings.activities[activity.name]
+		
+		for key, value in pairs(activity.settings) do
+						
+			if (type(activity.settings[key]) ~= "table") then
+						
+				settings[key] = activity.settings[key]
+							
+			end
+		end
+			        
+		game:SaveSettings()
+					
+	end
+end
+
+function UTActivity.Ui.Settings:Activate()
+
+    if (not self.keyboardActive) then
+
+        --game._Char:Add(self, self.Char)
+        game._KeyDown:Add(self, self.KeyDown)
+        self.keyboardActive = true
+
+    end
+
+end
+
+function UTActivity.Ui.Settings:Deactivate()
+
+    if (self.keyboardActive) then 
+    
+        --game._Char:Remove(self, self.Char)
+        game._KeyDown:Remove(self, self.KeyDown)
+        self.keyboardActive = false
+
+    end
+
+end
+
+function UTActivity.Ui.Settings:KeyDown(virtualKeyCode, scanCode)
+		
+	if (27 == virtualKeyCode or 49 == virtualKeyCode) then
+		
+		quartz.framework.audio.loadsound("base:audio/ui/back.wav")
+		quartz.framework.audio.loadvolume(game.settings.audio["volume:sfx"])
+		quartz.framework.audio.playsound()
+    		
+	    if (activity.forward2) then
+            game:PostStateChange("selector") 
+		else
+            activity:PostStateChange("title") 
+		end
+	end
+	if (50 == virtualKeyCode) then
+
+		self:Save(self)
+		activity:PostStateChange("advancedsettings")
+	end
+	if (13 == virtualKeyCode or 53 == virtualKeyCode) then
+		
+	    self:Save(self)
+		if (activity.forward2) then
+            activity:PostStateChange("playersmanagement")
+        else
+            activity:PostStateChange("playground")
+        end
 	end
 
 end
