@@ -69,6 +69,8 @@ function UTActivity.State.FinalRankings:Begin()
 		header = header .. "," .. "Team" .. "," .. "Name" .. "," .. "Victim" .. "," .. "Score" .. "," .. "Shots" .. "," .. "Hits" .. "," .. "Frags" .. "," .. "Ammo" .. "," .. "Med Kits" .. "," .. "Accuracy" .. "\r\n"
 	elseif (gametype == 'Infection' or gametype == l"title001") then
 		header = header .. "," .. "Name".. "," .. "Score" .. "," .. "Hits" .. "\r\n"
+	elseif (gametype == l"title026") then
+		header = header .. "," .. "Name".. "," .. "Score" .. "," .. "Shots" .. "," .. "Hits" .. "\r\n"
 	elseif (gametype == 'THE MARTIAN WOLF' or gametype == 'Last of the Species' or gametype == 'Wild West Duel') then
 		header = header .. "," .. "Name" .. "," .. "Score" .. "\r\n"
     elseif (gametype == 'CAPTURE') then
@@ -90,16 +92,18 @@ function UTActivity.State.FinalRankings:Begin()
 
 			for i, value in ipairs(team.players) do
 
-				if (gametype == 'LAST TEAM STANDING') then
-					scores = scores .. "Player" .. "," .. value.data.baked.ranking .. "," .. team.profile.teamColor .. "," .. value.profile.name .. "," .. "-" .. "," .. (value.data.baked.score or 0) .. "," .. (value.data.baked.nbShot or 0) .. "," .. (value.data.baked.hit or 0) .. "," .. (value.data.baked.death or 0) .. "," .. (value.data.baked.nbAmmoPack or 0) .. "," .. (value.data.baked.nbMediKit or 0) .. "," .. value.data.baked.accuracy .. "\r\n"
-				elseif (gametype == 'CAPTURE') then
-                    scores = scores .. "Player" .. "," .. value.data.baked.ranking .. "," .. team.profile.teamColor .. "," .. value.profile.name .. "," .. "-" .. "," .. (value.data.baked.score or 0) .. "," .. (value.data.baked.nbShot or 0) .. "," .. (value.data.baked.hit or 0) .. "," .. (value.data.baked.death or 0) .. "," .. (value.data.baked.nbRespawn or 0) .. "," .. (value.data.baked.nbAmmoPack or 0) .. "," .. (value.data.baked.nbMediKit or 0) .. "," .. (value.data.baked.flag or 0) .. "," .. value.data.baked.accuracy .. "," .. (value.data.baked.timeshit or 0) .. "\r\n"
-                else
-					scores = scores .. "Player" .. "," .. value.data.baked.ranking .. "," .. team.profile.teamColor .. "," .. value.profile.name .. "," .. "-" .. "," .. (value.data.baked.score or 0) .. "," .. (value.data.baked.nbShot or 0) .. "," .. (value.data.baked.hit or 0) .. "," .. (value.data.baked.death or 0) .. "," .. (value.data.baked.nbRespawn or 0) .. "," .. (value.data.baked.nbAmmoPack or 0) .. "," .. (value.data.baked.nbMediKit or 0) .. "," .. value.data.baked.accuracy .. "," .. (value.data.baked.timeshit or 0) .. "\r\n"
-				end
-				for _, pstats in ipairs(activity.players) do
-					if (pstats.profile.name ~= value.profile.name) then
-						scores = scores .. "Details" .. "," .. "" .. "," .. team.profile.teamColor .. "," .. value.profile.name .. "," .. pstats.profile.name .. "," .. "" .. "," .. "" .. "," .. (value.data.baked.hitByName[pstats.nameId] or 0) .. "," .. (value.data.baked.killByName[pstats.nameId] or 0) .. "\r\n"
+				if (gametype ~= l'title026') then
+					if (gametype == 'LAST TEAM STANDING') then
+						scores = scores .. "Player" .. "," .. value.data.baked.ranking .. "," .. team.profile.teamColor .. "," .. value.profile.name .. "," .. "-" .. "," .. (value.data.baked.score or 0) .. "," .. (value.data.baked.nbShot or 0) .. "," .. (value.data.baked.hit or 0) .. "," .. (value.data.baked.death or 0) .. "," .. (value.data.baked.nbAmmoPack or 0) .. "," .. (value.data.baked.nbMediKit or 0) .. "," .. value.data.baked.accuracy .. "\r\n"
+					elseif (gametype == 'CAPTURE') then
+						scores = scores .. "Player" .. "," .. value.data.baked.ranking .. "," .. team.profile.teamColor .. "," .. value.profile.name .. "," .. "-" .. "," .. (value.data.baked.score or 0) .. "," .. (value.data.baked.nbShot or 0) .. "," .. (value.data.baked.hit or 0) .. "," .. (value.data.baked.death or 0) .. "," .. (value.data.baked.nbRespawn or 0) .. "," .. (value.data.baked.nbAmmoPack or 0) .. "," .. (value.data.baked.nbMediKit or 0) .. "," .. (value.data.baked.flag or 0) .. "," .. value.data.baked.accuracy .. "," .. (value.data.baked.timeshit or 0) .. "\r\n"
+					else
+						scores = scores .. "Player" .. "," .. value.data.baked.ranking .. "," .. team.profile.teamColor .. "," .. value.profile.name .. "," .. "-" .. "," .. (value.data.baked.score or 0) .. "," .. (value.data.baked.nbShot or 0) .. "," .. (value.data.baked.hit or 0) .. "," .. (value.data.baked.death or 0) .. "," .. (value.data.baked.nbRespawn or 0) .. "," .. (value.data.baked.nbAmmoPack or 0) .. "," .. (value.data.baked.nbMediKit or 0) .. "," .. value.data.baked.accuracy .. "," .. (value.data.baked.timeshit or 0) .. "\r\n"
+					end
+					for _, pstats in ipairs(activity.players) do
+						if (pstats.profile.name ~= value.profile.name) then
+							scores = scores .. "Details" .. "," .. "" .. "," .. team.profile.teamColor .. "," .. value.profile.name .. "," .. pstats.profile.name .. "," .. "" .. "," .. "" .. "," .. (value.data.baked.hitByName[pstats.nameId] or 0) .. "," .. (value.data.baked.killByName[pstats.nameId] or 0) .. "\r\n"
+						end
 					end
 				end
 			end
@@ -172,7 +176,7 @@ function UTActivity.State.FinalRankings:Begin()
             else
                 scores = scores .. "\r\n"
             end
-            if not (gametype == 'THE MARTIAN WOLF' or gametype == 'Infection' or gametype == l"title001" or gametype == 'Last of the Species' or gametype == 'Wild West Duel') then
+            if not (gametype == l'title026' or gametype == 'THE MARTIAN WOLF' or gametype == 'Infection' or gametype == l"title001" or gametype == 'Last of the Species' or gametype == 'Wild West Duel') then
 			    for _, pstats in ipairs(activity.players) do
 			        if (pstats.profile.name ~= value.profile.name) then
 			            scores = scores .. "Details" .. "," .. "" .. "," .. value.profile.name .. "," .. pstats.profile.name .. "," .. "" .. "," .. "" .. "," .. (value.data.baked.hitByName[pstats.nameId] or 0)
@@ -203,7 +207,9 @@ function UTActivity.State.FinalRankings:Begin()
 				
 				if (not player.primary) then
 					if (player.rfGunDevice) then
-						if (game.settings.GameSettings.playernumbermod == 1) then
+						if (player.rfGunDevice.classId == 9) then
+							game.gameMaster:RegisterSound({paths = {"base:audio/gamemaster/DLG_GM_GLOBAL_63.wav"}, offset = offsetTime})
+						elseif (game.settings.GameSettings.playernumbermod == 1) then
 							if (player.rfGunDevice.classId < 23) then
 								if (player.rfGunDevice.classId > 15) then
 									game.gameMaster:RegisterSound({paths = {"base:audio/gamemaster/DLG_GM_GLOBAL_" ..(48 + player.rfGunDevice.classId) .. ".wav"}, offset = offsetTime})
