@@ -155,6 +155,7 @@ function UTActivity.Ui.ManualLaunch:__ctor(...)
 			quartz.framework.audio.loadsound("base:audio/ui/validation.wav")
 			quartz.framework.audio.loadvolume(game.settings.audio["volume:sfx"])
 			quartz.framework.audio.playsound()
+			game.manualdefaultplayer = nil
 			self:GetFirstAvailableDevice()
 		end
 	end
@@ -175,6 +176,9 @@ function UTActivity.Ui.ManualLaunch:GetFirstAvailableDevice()
 
 	self.player = nil
 	self.playercount = 0
+	if (game.manualdefaultplayer and game.manualdefaultplayer.rfGunDevice.classId == 1) then
+		self.count = 2
+	end
 	for _, player in ipairs(activity.match.players) do
 		self.playercount = self.playercount + 1
 		if (player.rfGunDevice and player.rfGunDevice.owner) then
@@ -189,7 +193,7 @@ function UTActivity.Ui.ManualLaunch:GetFirstAvailableDevice()
 		end
 
 	end
-
+	self.player = game.manualdefaultplayer or self.player
 	if (self.player) then
 
 		self.device = self.player.rfGunDevice
@@ -230,6 +234,7 @@ function UTActivity.Ui.ManualLaunch:GetFirstAvailableDevice()
         UIManager.stack:Replace(self.uiPopup)		
 
 	end
+	game.manualdefaultplayer = nil
 
 end
 
@@ -242,9 +247,9 @@ function UTActivity.Ui.ManualLaunch:OnClose()
 		engine.libraries.usb.proxy._DispatchMessage:Remove(self, UTActivity.Ui.ManualLaunch.OnDispatchMessage)
 	
 	end
-
+	game.manualdefaultplayer = self.player
 	UIManager:RemoveFx(self.myFx)
-	self:Deactivate()
+	UTActivity.Ui.PlayersSetup.hasPopup = false
 
 end
 
@@ -279,8 +284,7 @@ function UTActivity.Ui.ManualLaunch:OnOpen()
 	-- get first available device
 
 	self:GetFirstAvailableDevice()
-	self:Activate()
-	self:KeyDown(virtualKeyCode, scanCode)
+	UTActivity.Ui.PlayersSetup.hasPopup = true
 
 end
 
@@ -333,7 +337,7 @@ function UTActivity.Ui.ManualLaunch:Update()
 		for i, player in ipairs(activity.match.challengers) do
 			if (player.rfGunDevice and player.rfGunDevice.owner and not player.rfGunDevice.timedout) then
 				numberOfPlayers = numberOfPlayers + 1
-			elseif (game.settings.ActivitySettings.preventlaunch == 1 and game.settings.GameSettings.unregister == 0) then
+			elseif (game.settings.ActivitySettings.preventlaunch == 1 and game.settings.GameSettings.unregister == 0 and game.settings.TestSettings.vestoverride == 0) then
 				self.uiButton2.enabled = false
 			end
 		end
@@ -346,7 +350,7 @@ function UTActivity.Ui.ManualLaunch:Update()
 			for i, player in ipairs(activity.match.challengers[i].players) do
 				if (player.rfGunDevice and player.rfGunDevice.owner and not player.rfGunDevice.timedout) then
 					numberOfPlayers = numberOfPlayers + 1
-				elseif (game.settings.ActivitySettings.preventlaunch == 1 and game.settings.GameSettings.unregister == 0) then
+				elseif (activity.category ~= UTActivity.categories.single and game.settings.ActivitySettings.preventlaunch == 1 and game.settings.GameSettings.unregister == 0 and game.settings.TestSettings.vestoverride == 0) then
 					self.uiButton2.enabled = false
 				end
 			end
@@ -355,41 +359,5 @@ function UTActivity.Ui.ManualLaunch:Update()
 			end
 		end
 	end
-
-end
-
-function UTActivity.Ui.ManualLaunch:KeyDown(virtualKeyCode, scanCode)
-		
-	if (27 == virtualKeyCode) then
-
-		UIManager.stack:Pop()
-
-	end
-
-end
-
--- Activate ---------------------------------------------------------------
-
-function UTActivity.Ui.ManualLaunch:Activate()
-
-    if (not self.keyboardActive) then
-
-        game._KeyDown:Add(self, self.KeyDown)
-        self.keyboardActive = true
-
-    end
-
-end
-
--- Deactivate ---------------------------------------------------------------
-
-function UTActivity.Ui.ManualLaunch:Deactivate()
-
-    if (self.keyboardActive) then 
-    
-        game._KeyDown:Remove(self, self.KeyDown)
-        self.keyboardActive = false
-
-    end
 
 end

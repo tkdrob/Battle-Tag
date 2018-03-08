@@ -97,19 +97,19 @@ function UTGame:__ctor(...)
         ["playernumbermod"] = 0,
         ["unregister"] = 0,
         ["reconnect"] = 2,
-		["vestdisconnect"] = 1,
+        ["vestdisconnect"] = 1,
     }
     
     self.settings.ActivitySettings = {
 
         ["beamPower"] = 3,
-		["teampoints"] = 2,
+        ["teampoints"] = 2,
         ["playerpoints"] = 1,
         ["assist"] = 1,
         ["preventlaunch"] = 1,
         ["teamdefaults"] = 0,
         ["gameLaunch"] = 1,
-		["countdown"] = 10,
+        ["countdown"] = 10,
     }
     
     self.settings.UiSettings = {
@@ -119,10 +119,10 @@ function UTGame:__ctor(...)
         ["playerslotgrid"] = 0,
         ["nbplayerslot"] = 12,
         ["teamribbon"] = 0,
-		["aspectratio"] = 0,
-		["teamcolors"] = 0,
-		["finalranking"] = 0,
-		["lastgame"] = 1,
+        ["aspectratio"] = 0,
+        ["teamcolors"] = 0,
+        ["finalranking"] = 0,
+        ["lastgame"] = 1,
     }
 
     self.settings.TestSettings = {

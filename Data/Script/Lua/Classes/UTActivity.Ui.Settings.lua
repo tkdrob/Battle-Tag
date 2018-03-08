@@ -101,11 +101,15 @@ function UTActivity.Ui.Settings:__ctor(...)
            						activity.settings.respawnmode = 1
             				end
             			end
+            			if (value > 2 and game.settings.addons.customPack == 0) then
+            				activity.settings.flagNumber = 0
+            			end
 					end
-					if (self.option.index == "teamFrag") then
-						if (value == 0 and activity.settings.numberOfTeams > 4) then
-							activity.settings.numberOfTeams = 4
-						end
+					if (self.option.index == "teamFrag" and value == 0 and activity.settings.numberOfTeams > 4 and game.settings.addons.customPack == 0) then
+						activity.settings.numberOfTeams = 4
+					end
+					if (self.option.index == "flagNumber" and game.settings.addons.customPack == 0 and value == 1 and activity.settings.numberOfTeams > 2) then
+						activity.settings.numberOfTeams = 2
 					end
 					if (self.option.index == "bonusmin" and value == 0) then
 						activity.settings.bonusmax = 0

@@ -20,6 +20,7 @@ require "UTGame.Ui.Associate"
 
     require "Ui/UIContextualMenu"
     require "Ui/UIPlayerSlotGrid"
+	require "UTActivity.Ui.OptionsPopup"
 
 --[[ Class -----------------------------------------------------------------]]
 
@@ -93,19 +94,9 @@ function UTActivity.Ui.PlayersManagement:__ctor(...)
 		self.uiButton1.rectangle = UIMenuWindow.buttonRectangles[1]
 		self.uiButton1.text = l "but003"
 		self.uiButton1.tip = l "tip006"
-		self.uiButton1.OnAction = function (self) 
+		self.uiButton1.OnAction = function () 
 
-			quartz.framework.audio.loadsound("base:audio/ui/back.wav")
-			quartz.framework.audio.loadvolume(game.settings.audio["volume:sfx"])
-			quartz.framework.audio.playsound()
-		
-			if (activity.forward) then
-                game:PostStateChange("selector") 
-			elseif (activity.forward2) then
-                activity:PostStateChange("settings")
-            else
-                activity:PostStateChange("playground")
-			end
+			self:Back()
 
 		end
 		
@@ -116,44 +107,23 @@ function UTActivity.Ui.PlayersManagement:__ctor(...)
 		self.uiButton2.text = l "oth010"
 		self.uiButton2.tip = l "tip011"
 
-		self.uiButton2.OnAction = function (self)
+		self.uiButton2.OnAction = function ()
+			self:Deactivate()
 			UIManager.stack:Push(UTGame.Ui.Settings)
+
 		end
+
+		if (#activity.teams > 0) then
 		
-		-- uiButton3: team defaults
-				
-		self.uiButton3 = self:AddComponent(UIButton:New(), "uiButton3")
-		self.uiButton3.rectangle = UIMenuWindow.buttonRectangles[3]
-		self.uiButton3.text = l "but026"
-		self.uiButton3.tip = l "tip179"
-		self.uiButton3.visible = false
-		self.uiButton3.pressed = false
-	
-		self.uiButton3.OnAction = function (self)
-			for _, player in ipairs(activity.players) do
-				local teamchange = true
-				for i, team in ipairs(activity.teams) do
-					if (0 >= #team.players) then
-						teamIndex = i
-						teamchange = nil
-						activity.states["playersmanagement"]:ChangeTeam(player, teamIndex)
-						break
-					end
-				end
-				if (teamchange and player.profile.team) then
-					local curplayer = player
-					local curteam = player.profile.team
-					for _, player in ipairs(activity.players) do
-						if (player ~= curplayer and curteam == player.profile.team) then
-							teamIndex = player.team.index
-							activity.states["playersmanagement"]:ChangeTeam(curplayer, teamIndex)
-							break
-						end
-					end
-				end
-				self.uiButton3.pressed = true
+			self.uiButton3 = self:AddComponent(UIButton:New(), "uiButton3")
+			self.uiButton3.rectangle = UIMenuWindow.buttonRectangles[3]
+			self.uiButton3.text = l "title029"
+			self.uiButton3.tip = l "tip258"
+
+			self.uiButton3.OnAction = function ()
+				UIManager.stack:Push(UTActivity.Ui.OptionsPopup)
 			end
-			activity:SaveTeamInformation()
+
 		end
 		
 		if (activity.category == UTActivity.categories.single or GEAR_CFG_COMPILE == GEAR_COMPILE_DEBUG) then
@@ -177,89 +147,9 @@ function UTActivity.Ui.PlayersManagement:__ctor(...)
 		self.uiButton5.text = l "but014"
 		self.uiButton5.tip = l "tip019"
 		
-		self.uiButton5.OnAction = function (self)
+		self.uiButton5.OnAction = function ()
 		
-			if (activity.settings.energymode == 1 or activity.settings.respawnhit == 1) then
-				activity.bytecodePath = "base:script/bytecode/" .. activityclass .. ".ByteCode" .. 3 + game.settings.ActivitySettings.assist .. ".lua"
-			elseif (game.settings.ActivitySettings.assist == 0) then
-				activity.bytecodePath = "base:script/bytecode/" .. activityclass .. ".ByteCode.lua"
-			else
-				activity.bytecodePath = "base:script/bytecode/" .. activityclass .. ".ByteCode2.lua"
-			end
-		
-		    if (directoryselected ~= gametypeloaded) then
-    			uploadbytecode = true
-    		end
-
-			-- check if the activity can be launched
-
-			if (activity:Check()) then
-
-				-- check whether any of the required gun devices needs to be updated
-				-- possible updates include: firmware, data banks
-
-				local updateRequired = false
-
-				for _, player in pairs(activity.players) do
-					updateRequired = updateRequired or (player.rfGunDevice and player.rfGunDevice.updateRequired)
-				end
-
-				if (updateRequired) or REG_FORCEREVISION then
-
-					-- lock the usb proxy so as to refuse any further connection requests
-
-					engine.libraries.usb.proxy:Lock()
-
-					-- create a popup to warn user(s) about the pending updates
-					-- the popup offers no other choice than to accept the updates
-
-					local uiPopup = UIPopupWindow:New()
-
-					uiPopup.title = ""
-					uiPopup.text = l "oth017"
-
-					-- buttons
-
-					-- uiButton1: quit
-
-					uiPopup.uiButton1 = uiPopup:AddComponent(UIButton:New(), "uiButton1")
-					uiPopup.uiButton1.rectangle = UIPopupWindow.buttonRectangles[1]
-					uiPopup.uiButton1.text = l"but018"
-					uiPopup.uiButton1.tip = l"tip006"
-    
-					uiPopup.uiButton1.OnAction = function () 
-	
-						UIManager.stack:Pop()
-					end
-
-					-- uiButton2: continue
-
-					uiPopup.uiButton2 = uiPopup:AddComponent(UIButton:New(), "uiButton2")
-					uiPopup.uiButton2.rectangle = UIPopupWindow.buttonRectangles[2]
-					uiPopup.uiButton2.text = l "but019"
-
-					uiPopup.uiButton2.OnAction = function ()
-
-						UIManager.stack:Pop()
-						activity:PostStateChange("revision", "bytecode")
-
-					end
-
-					UIManager.stack:Push(uiPopup)
-
-				else
-
-					quartz.framework.audio.loadsound("base:audio/ui/validation.wav")
-					quartz.framework.audio.loadvolume(game.settings.audio["volume:sfx"])
-					quartz.framework.audio.playsound()
-
-					if (uploadbytecode and game.settings.TestSettings.bytecodeoverride == 0) then activity:PostStateChange("bytecode")
-					else activity:PostStateChange("matchmaking")
-					end
-
-				end
-
-			end
+			self:Confirm()
 
 		end
 
@@ -280,27 +170,6 @@ function UTActivity.Ui.PlayersManagement:__ctor(...)
 			quartz.framework.audio.playsound()
 			devicenumberflag = false
 			unregisterguns = true
-		end
-		
-		if (activity.teamdefaults) then
-		
-			-- uiButton7: Swap Teams
-			
-			self.uiButton7 = self:AddComponent(UIButton:New(), "uiButton7")
-			self.uiButton7.rectangle = UIMenuWindow.buttonRectangles[3]
-			self.uiButton7.text = l "but031"
-			self.uiButton7.tip = l "tip202"
-			self.uiButton7.visible = false
-
-			self.uiButton7.OnAction = function (self) 
-				for _, player in ipairs(activity.players) do
-					teamIndex = player.team.index + 1
-					while (teamIndex > #activity.teams) do
-						teamIndex = teamIndex - #activity.teams
-					end
-					activity.states["playersmanagement"]:ChangeTeam(player, teamIndex)
-				end
-			end
 		end
 
 		if (not activity.nodual) then
@@ -362,10 +231,7 @@ function UTActivity.Ui.PlayersManagement:CheckNumberOfPlayers()
 			if (0 >= #team.players) then
 
 				self.uiButton5.enabled = false
-				self.uiButton3.pressed = false
 				break
-			else
-				self.uiButton3.pressed = true
 			end
 		end
 
@@ -421,6 +287,7 @@ function UTActivity.Ui.PlayersManagement:OnClose()
         activity.states["playersmanagement"]._PlayerRemoved:Remove(self, self.OnPlayerRemoved)
 
     end
+	self:Deactivate()
 
     if (engine.libraries.usb.proxy) then
 	    engine.libraries.usb.proxy._DispatchMessage:Remove(self, UTActivity.Ui.PlayersManagement.OnDispatchMessage)	
@@ -481,8 +348,6 @@ function UTActivity.Ui.PlayersManagement:OnPlayerAdded(player)
 		slot.profileUpdated = true
 	end
 	
-	self.uiButton3.pressed = false
-	
 	-- check number of player
 
 	--self:CheckNumberOfPlayers()
@@ -537,6 +402,7 @@ function UTActivity.Ui.PlayersManagement:OnOpen()
 
     activity.states["playersmanagement"]._PlayerAdded:Add(self, self.OnPlayerAdded)
     activity.states["playersmanagement"]._PlayerRemoved:Add(self, self.OnPlayerRemoved)
+	self:Activate()
 
 	-- register	to proxy message received
 
@@ -579,7 +445,6 @@ function UTActivity.Ui.PlayersManagement:Update()
 
 	if (activity.teamdefaults) then
 		if (game.settings.ActivitySettings.teamdefaults == 1) then
-			self.uiButton3.visible = true
 			for _, player in ipairs(activity.players) do
 				if (player.rfGunDevice.teamdefault and player.profile.team > 0) then
 					teamIndex = player.profile.team
@@ -593,10 +458,176 @@ function UTActivity.Ui.PlayersManagement:Update()
                     end
 				end
 			end
-		else
-			self.uiButton3.visible = false
 		end
-		self.uiButton7.visible = self.uiButton3.pressed or game.settings.ActivitySettings.teamdefaults == 0
 	end
 
+end
+
+function UTActivity.Ui.PlayersManagement:Back(self)
+	
+	quartz.framework.audio.loadsound("base:audio/ui/back.wav")
+	quartz.framework.audio.loadvolume(game.settings.audio["volume:sfx"])
+	quartz.framework.audio.playsound()
+		
+	if (activity.forward) then
+        game:PostStateChange("selector") 
+	elseif (activity.forward2) then
+        activity:PostStateChange("settings")
+    else
+        activity:PostStateChange("playground")
+	end
+end
+
+function UTActivity.Ui.PlayersManagement:Confirm(self)
+
+	if (activity.settings.energymode == 1 or activity.settings.respawnhit == 1) then
+		activity.bytecodePath = "base:script/bytecode/" .. activityclass .. ".ByteCode" .. 3 + game.settings.ActivitySettings.assist .. ".lua"
+	elseif (game.settings.ActivitySettings.assist == 0) then
+		activity.bytecodePath = "base:script/bytecode/" .. activityclass .. ".ByteCode.lua"
+	else
+		activity.bytecodePath = "base:script/bytecode/" .. activityclass .. ".ByteCode2.lua"
+	end
+		
+	if (directoryselected ~= gametypeloaded or game.settings.TestSettings.bytecodetesting == 1) then
+    	uploadbytecode = true
+    end
+
+	-- check if the activity can be launched
+
+	if (activity:Check()) then
+
+		-- check whether any of the required gun devices needs to be updated
+		-- possible updates include: firmware, data banks
+
+		local updateRequired = false
+
+		for _, player in pairs(activity.players) do
+			updateRequired = updateRequired or (player.rfGunDevice and player.rfGunDevice.updateRequired)
+		end
+
+		if (updateRequired) or REG_FORCEREVISION then
+
+			-- lock the usb proxy so as to refuse any further connection requests
+
+			engine.libraries.usb.proxy:Lock()
+
+			-- create a popup to warn user(s) about the pending updates
+			-- the popup offers no other choice than to accept the updates
+
+			local uiPopup = UIPopupWindow:New()
+
+			uiPopup.title = ""
+			uiPopup.text = l "oth017"
+
+			-- buttons
+
+			-- uiButton1: quit
+
+			uiPopup.uiButton1 = uiPopup:AddComponent(UIButton:New(), "uiButton1")
+			uiPopup.uiButton1.rectangle = UIPopupWindow.buttonRectangles[1]
+			uiPopup.uiButton1.text = l"but018"
+			uiPopup.uiButton1.tip = l"tip006"
+    
+			uiPopup.uiButton1.OnAction = function () 
+	
+				UIManager.stack:Pop()
+			end
+
+			-- uiButton2: continue
+
+			uiPopup.uiButton2 = uiPopup:AddComponent(UIButton:New(), "uiButton2")
+			uiPopup.uiButton2.rectangle = UIPopupWindow.buttonRectangles[2]
+			uiPopup.uiButton2.text = l "but019"
+
+			uiPopup.uiButton2.OnAction = function ()
+
+				UIManager.stack:Pop()
+				activity:PostStateChange("revision", "bytecode")
+
+			end
+
+			UIManager.stack:Push(uiPopup)
+
+		else
+
+			quartz.framework.audio.loadsound("base:audio/ui/validation.wav")
+			quartz.framework.audio.loadvolume(game.settings.audio["volume:sfx"])
+			quartz.framework.audio.playsound()
+
+			if (uploadbytecode and game.settings.TestSettings.bytecodeoverride == 0) then activity:PostStateChange("bytecode")
+			else activity:PostStateChange("matchmaking")
+			end
+
+		end
+
+	end
+end
+
+function UTActivity.Ui.PlayersManagement:Activate()
+
+    if (not self.keyboardActive) then
+
+        --game._Char:Add(self, self.Char)
+        game._KeyDown:Add(self, self.KeyDown)
+        self.keyboardActive = true
+
+    end
+
+end
+
+function UTActivity.Ui.PlayersManagement:Deactivate()
+
+    if (self.keyboardActive) then 
+    
+        --game._Char:Remove(self, self.Char)
+        game._KeyDown:Remove(self, self.KeyDown)
+        self.keyboardActive = false
+
+    end
+
+end
+
+function UTActivity.Ui.PlayersManagement:KeyDown(virtualKeyCode, scanCode)
+		
+	if (not self.hasPopup) then
+		if ((13 == virtualKeyCode or 53 == virtualKeyCode) and not self.uiButton6.visible) then
+
+			self:Confirm()
+		end
+		if (27 == virtualKeyCode or 49 == virtualKeyCode) then
+
+			self:Back()
+		end
+		if (50 == virtualKeyCode) then
+			self:Deactivate()
+			UIManager.stack:Push(UTGame.Ui.Settings)
+		end
+		if (51 == virtualKeyCode and self.uiButton3) then
+			UIManager.stack:Push(UTActivity.Ui.OptionsPopup)
+		end
+		if (52 == virtualKeyCode and not activity.nodual) then
+			for _, player in ipairs(activity.players) do
+				local curplayer = player
+				for _, player in ipairs(activity.players) do
+					if (player ~= curplayer and curplayer.profile.name == player.profile.name and player.team == curplayer.team and not curplayer.primary) then
+						player.primary = curplayer
+						curplayer.secondary = player
+						self.slotGrid:RemoveSlot(player)
+					end
+				end
+			end
+		end
+		if (97 == virtualKeyCode) then
+
+			UTActivity.Ui.OptionsPopup:Fill()
+		end
+		if (98 == virtualKeyCode) then
+
+			UTActivity.Ui.OptionsPopup:Combine()
+		end
+		if (99 == virtualKeyCode) then
+
+			UTActivity.Ui.OptionsPopup:Swap()
+		end
+	end
 end

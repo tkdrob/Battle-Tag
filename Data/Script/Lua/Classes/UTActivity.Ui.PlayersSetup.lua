@@ -97,17 +97,9 @@ function UTActivity.Ui.PlayersSetup:__ctor(...)
 		self.uiButton1.text = l "but003"
 		self.uiButton1.tip = l"tip006"
 
-		self.uiButton1.OnAction = function(self)
+		self.uiButton1.OnAction = function()
 		
-			quartz.framework.audio.loadsound("base:audio/ui/back.wav")
-			quartz.framework.audio.loadvolume(game.settings.audio["volume:sfx"])
-			quartz.framework.audio.playsound()
-			
-			UIMenuManager.stack:Pop()
-			activity.matches = nil
-			activity:PostStateChange("playersmanagement")
-			--self.enabled = false
-
+			self:Back()
 		end
 
 		-- uiButton5: players ready for countdown
@@ -118,14 +110,9 @@ function UTActivity.Ui.PlayersSetup:__ctor(...)
 		self.uiButton5.tip = l"tip020"
 		self.uiButton5.enabled = false
 
-		self.uiButton5.OnAction = function(self)
+		self.uiButton5.OnAction = function()
 		
-			if (1 == game.settings.ActivitySettings.gameLaunch) then
-				UIManager.stack:Push(UTActivity.Ui.ManualLaunch)
-			else
-				activity:PostStateChange("beginmatch") 
-			end
-			--self.enabled = false
+			self:Confirm()
 
 		end
 
@@ -142,6 +129,7 @@ function UTActivity.Ui.PlayersSetup:OnClose()
 	for i, player in ipairs(activity.match.players) do
 		player._DataChanged:Remove(self, self.OnDataChanged)
 	end
+	self:Deactivate()
 
 	engine.libraries.usb.proxy._DeviceRemoved:Remove(self, UTActivity.Ui.PlayersSetup.OnDeviceRemoved)
 
@@ -241,6 +229,7 @@ function UTActivity.Ui.PlayersSetup:OnOpen()
 	for i, player in ipairs(activity.match.players) do
 		player._DataChanged:Add(self, self.OnDataChanged)
 	end
+	self:Activate()
 	
 	gametypeloaded = directoryselected
 
@@ -255,50 +244,122 @@ function UTActivity.Ui.PlayersSetup:Update()
 	-- display harness if needed by activity
 
 	self.uiButton5.enabled = true
-    if (not game.settings.TestSettings.vestoverride) then
-	    if (activity.category ~= UTActivity.categories.single) then
+	if (activity.category ~= UTActivity.categories.single and game.settings.TestSettings.vestoverride == 0) then
 
-		    for i, player in ipairs(activity.match.players) do
+		for i, player in ipairs(activity.match.players) do
 
-			    if (player.rfGunDevice and not player.data.heap.harnessOn and not player.primary) then
-				    self.uiButton5.enabled = false
-			    end
-		    end
+			if (player.rfGunDevice and not player.data.heap.harnessOn and not player.primary) then
+				self.uiButton5.enabled = false
+			end
+		end
 
-	    end
-	    if (#activity.teams == 0) then
-		    local numberOfPlayers = 0
-		    for i, player in ipairs(activity.match.challengers) do
-			    if (player.rfGunDevice and player.rfGunDevice.owner and not player.rfGunDevice.timedout) then
-				    numberOfPlayers = numberOfPlayers + 1
-			    end
-		    end
-		    if (numberOfPlayers <= 1) then
-			    self.uiButton5.enabled = false
-			    if (game.settings.GameSettings.unregister == 1) then
-				    activity:PostStateChange("playersmanagement")
-			    end
-		    end
-	    else
-		    for i = 1, activity.settings.numberOfTeams do
-			    local numberOfPlayers = 0
-			    for i, player in ipairs(activity.match.challengers[i].players) do
-				    if (player.rfGunDevice and player.rfGunDevice.owner and not player.rfGunDevice.timedout) then
-					    numberOfPlayers = numberOfPlayers + 1
-				    end
-			    end
-			    if (numberOfPlayers == 0) then
-				    self.uiButton5.enabled = false
-				    if (game.settings.GameSettings.unregister == 1) then
-					    activity:PostStateChange("playersmanagement")
-				    end
-			    end
-		    end
-	    end
-    end
+	end
+
+	if (#activity.teams == 0) then
+		local numberOfPlayers = 0
+		for i, player in ipairs(activity.match.challengers) do
+			if (player.rfGunDevice and player.rfGunDevice.owner and not player.rfGunDevice.timedout) then
+				numberOfPlayers = numberOfPlayers + 1
+			end
+		end
+		if (numberOfPlayers <= 1) then
+			self.uiButton5.enabled = false
+			if (game.settings.GameSettings.unregister == 1) then
+				activity:PostStateChange("playersmanagement")
+			end
+		end
+	else
+		for i = 1, activity.settings.numberOfTeams do
+			local numberOfPlayers = 0
+			for i, player in ipairs(activity.match.challengers[i].players) do
+				if (player.rfGunDevice and player.rfGunDevice.owner and not player.rfGunDevice.timedout) then
+					numberOfPlayers = numberOfPlayers + 1
+				end
+			end
+			if (numberOfPlayers == 0) then
+				self.uiButton5.enabled = false
+				if (game.settings.GameSettings.unregister == 1) then
+					activity:PostStateChange("playersmanagement")
+				end
+			end
+		end
+	end
 
 	-- update
 
 	self.slotGrid:Update()
+
+end
+
+function UTActivity.Ui.PlayersSetup:Back()
+
+	quartz.framework.audio.loadsound("base:audio/ui/back.wav")
+	quartz.framework.audio.loadvolume(game.settings.audio["volume:sfx"])
+	quartz.framework.audio.playsound()
+			
+	UIMenuManager.stack:Pop()
+	activity.matches = nil
+	activity:PostStateChange("playersmanagement")
+	--self.enabled = false
+end
+
+function UTActivity.Ui.PlayersSetup:Confirm()
+
+	if (1 == game.settings.ActivitySettings.gameLaunch) then
+		UIManager.stack:Push(UTActivity.Ui.ManualLaunch)
+	else
+		self:Deactivate()
+		activity:PostStateChange("beginmatch")
+	end
+	--self.enabled = false
+end
+
+function UTActivity.Ui.PlayersSetup:Activate()
+
+    if (not self.keyboardActive) then
+
+        --game._Char:Add(self, self.Char)
+        game._KeyDown:Add(self, self.KeyDown)
+        self.keyboardActive = true
+
+    end
+
+end
+
+function UTActivity.Ui.PlayersSetup:Deactivate()
+
+    if (self.keyboardActive) then 
+    
+        --game._Char:Remove(self, self.Char)
+        game._KeyDown:Remove(self, self.KeyDown)
+        self.keyboardActive = false
+
+    end
+
+end
+
+function UTActivity.Ui.PlayersSetup:KeyDown(virtualKeyCode, scanCode)
+		
+	if ((13 == virtualKeyCode or 53 == virtualKeyCode) and self.uiButton5.enabled) then
+		if (self.hasPopup) then
+
+			UIManager.stack:Pop()
+			self:Deactivate()
+			activity:PostStateChange("beginmatch")
+		else
+			self:Confirm()
+		end
+
+	end
+	if (27 == virtualKeyCode or 49 == virtualKeyCode) then
+		if (self.hasPopup) then
+			quartz.framework.audio.loadsound("base:audio/ui/back.wav")
+			quartz.framework.audio.loadvolume(game.settings.audio["volume:sfx"])
+			quartz.framework.audio.playsound()
+			UIManager.stack:Pop()
+		else
+			self:Back()
+		end
+	end
 
 end
