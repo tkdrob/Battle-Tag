@@ -79,11 +79,8 @@ function UTGame.Ui.Selector:__ctor(...)
     self.uiButton1.text = l"but003"
 	self.uiButton1.tip = l"tip006"
 
-    self.uiButton1.OnAction = function (self) 
-		quartz.framework.audio.loadsound("base:audio/ui/back.wav")
-		quartz.framework.audio.loadvolume(game.settings.audio["volume:sfx"])
-		quartz.framework.audio.playsound()
-		game:PostStateChange("title") 
+    self.uiButton1.OnAction = function () 
+		self:Back()
     end
 
     -- uiButton3: select, settings
@@ -117,17 +114,7 @@ function UTGame.Ui.Selector:__ctor(...)
 
     self.uiButton4.OnAction = function ()
     
-        assert(self.nfo)
-        assert(self.nfo.class)
-        activityclass = self.nfo.class
-
-		quartz.framework.audio.loadsound("base:audio/ui/validation.wav")
-		quartz.framework.audio.loadvolume(game.settings.audio["volume:sfx"])
-		quartz.framework.audio.playsound()
-		game.settings.UiSettings.lastgame = game.settings.UiSettings.lastgame or self.currentSelectedIndex
-		game:SaveSettings()
-        game:PostStateChange("session", self.nfo, "playersmanagement")
-    
+		self:Confirm()
     end
 
     -- uiButton5: select, play
@@ -341,10 +328,75 @@ function UTGame.Ui.Selector:Open()
         end
 
         self.index = game.settings.UiSettings.lastgame or 1
-		self:Scroll(0)
+		self:Scroll(self.index - 15 or 0)
 
         self:DisplaySelectedNfo(game.nfos[game.settings.UiSettings.lastgame or 1])
 
     end
+	self:Activate()
 
+end
+
+function UTGame.Ui.Selector:Close()
+
+	self:Deactivate()
+end
+
+function UTGame.Ui.Selector:Back()
+
+	quartz.framework.audio.loadsound("base:audio/ui/back.wav")
+	quartz.framework.audio.loadvolume(game.settings.audio["volume:sfx"])
+	quartz.framework.audio.playsound()
+	game:PostStateChange("title") 
+end
+
+function UTGame.Ui.Selector:Confirm()
+
+    assert(self.nfo)
+    assert(self.nfo.class)
+    activityclass = self.nfo.class
+
+	quartz.framework.audio.loadsound("base:audio/ui/validation.wav")
+	quartz.framework.audio.loadvolume(game.settings.audio["volume:sfx"])
+	quartz.framework.audio.playsound()
+	game.settings.UiSettings.lastgame = game.settings.UiSettings.lastgame or self.currentSelectedIndex
+	game:SaveSettings()
+    game:PostStateChange("session", self.nfo, "playersmanagement")
+end
+
+function UTGame.Ui.Selector:Activate()
+
+    if (not self.keyboardActive) then
+
+        --game._Char:Add(self, self.Char)
+        game._KeyDown:Add(self, self.KeyDown)
+        self.keyboardActive = true
+
+    end
+
+end
+
+function UTGame.Ui.Selector:Deactivate()
+
+    if (self.keyboardActive) then 
+    
+        --game._Char:Remove(self, self.Char)
+        game._KeyDown:Remove(self, self.KeyDown)
+        self.keyboardActive = false
+
+    end
+
+end
+
+function UTGame.Ui.Selector:KeyDown(virtualKeyCode, scanCode)
+		
+	if (13 == virtualKeyCode) then
+
+		self:Confirm()
+	end
+
+	if (27 == virtualKeyCode) then
+
+		self:Back()
+	end
 end
