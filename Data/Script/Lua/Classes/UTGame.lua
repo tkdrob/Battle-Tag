@@ -121,6 +121,7 @@ function UTGame:__ctor(...)
         ["teamribbon"] = 0,
 		["aspectratio"] = 0,
 		["teamcolors"] = 0,
+		["finalranking"] = 0,
 		["lastgame"] = 1,
     }
 
@@ -128,7 +129,6 @@ function UTGame:__ctor(...)
 
         ["roundloopcycle"] = 100000,
         ["bytecodeoverride"] = 0,
-        ["vestoverride"] = false,
     }
 
     self.settings.registers = {
